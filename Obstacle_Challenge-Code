@@ -1,1 +1,141 @@
+#include <Servo.h>  // Include library for controlling servo motors
+#include <Pixy2.h>  // Include Pixy2 library for color detection
 
+// Create objects for Pixy2 camera and servo motor
+Pixy2 pixy;
+Servo servo1;
+
+// Define pin assignments for servo and motor control
+const int servoPin = 6;
+const int enA = 9;
+const int in1 = 8;
+const int in2 = 7;
+
+int i = 0;  // Loop control variable
+int y = 0;  // Loop control variable
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+  Serial.println("Starting...");
+
+  // Setup servo motor and set initial position
+  servo1.attach(servoPin);
+  servo1.write(85);
+
+  // Configure motor control pins as outputs
+  pinMode(enA, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+
+  // Ensure motors are off initially
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+
+  // Initialize Pixy2 camera
+  pixy.init();
+}
+
+void loop() {
+  // First loop iteration
+  for (y = 0; y < 1; y++) {
+    controlServoAndMotor(175, 85);
+  }
+
+  // Second loop iteration (3 times)
+  for (i = 0; i < 3; i++) {
+    controlServoAndMotor(-5, 85);
+  }
+}
+
+// Function to control servo and motor operations
+void controlServoAndMotor(int initialServoPos, int resetServoPos) {
+  servo1.write(initialServoPos);  // Set servo position
+  delay(500);
+  activateMotors();               // Turn on motors
+  delay(1000);
+  servo1.write(resetServoPos);    // Reset servo position
+  delay(500);
+  activateMotors();
+
+  // Check if Pixy2 camera detects any blocks
+  if (pixy.ccc.numBlocks > 0) {
+    handleDetectedBlock();
+  } else {
+    Serial.println("No blocks detected");
+  }
+
+  speedControl();                // Adjust motor speed
+  pixy.ccc.getBlocks();          // Fetch block data from Pixy2
+  delay(1000);                   // Wait before next iteration
+}
+
+// Function to activate motors
+void activateMotors() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, HIGH);
+}
+
+// Function to handle block detection
+void handleDetectedBlock() {
+  if (pixy.ccc.blocks[0].m_signature == 1) {
+    RedControl();  // Red block control
+  } else if (pixy.ccc.blocks[0].m_signature == 2) {
+    BlueControl(); // Blue block control
+  }
+}
+
+// Blue block control function
+void BlueControl() {
+  analogWrite(enA, 255);    // Set motor speed to max
+  servo1.write(75);         // Adjust servo for blue block
+  setMotorDirection(false); // Motor direction for blue block
+  delay(2000);              // Wait for 2 seconds
+  stopMotors();             // Stop motors
+}
+
+// Red block control function
+void RedControl() {
+  analogWrite(enA, 255);    // Set motor speed to max
+  servo1.write(95);         // Adjust servo for red block
+  setMotorDirection(true);  // Motor direction for red block
+  delay(2000);              // Wait for 2 seconds
+  stopMotors();             // Stop motors
+}
+
+// Function to set motor direction based on the block type
+void setMotorDirection(bool isRed) {
+  if (isRed) {
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+  } else {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+  }
+}
+
+// Function to stop the motors
+void stopMotors() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+}
+
+// Speed control function to accelerate and decelerate motors
+void speedControl() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+
+  // Gradually accelerate from 0 to max speed
+  for (int i = 0; i < 256; i++) {
+    analogWrite(enA, i);
+    delay(20);
+  }
+
+  // Gradually decelerate from max speed to 0
+  for (int i = 255; i >= 0; i--) {
+    analogWrite(enA, i);
+    delay(20);
+  }
+
+  stopMotors();  // Stop motors after deceleration
+}

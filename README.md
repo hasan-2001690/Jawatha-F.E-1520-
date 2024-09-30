@@ -1,0 +1,1 @@
+We are Jawatha FE, a dedicated team competing in the WRO Future Engineers Competition. Our diverse group combines talents in programming, design, engineering, and project management, united by a passion for innovation and collaboration. Together, we strive to showcase our skills and creativity in this exciting challenge.

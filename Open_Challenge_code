@@ -1,1 +1,64 @@
+#include <Servo.h>  // Include library for controlling servo motors
 
+// Create a Servo object for motor control
+Servo servo1;
+
+// Define pin assignments for the servo and motor control
+const int servoPin = 6;
+const int enA = 9;
+const int in1 = 8;
+const int in2 = 7;
+
+// Loop control variables
+int i = 0;
+int x = 0;
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+  Serial.println("Starting...");
+
+  // Attach servo to the specified pin and set initial position
+  servo1.attach(servoPin);
+  servo1.write(0);
+
+  // Configure motor control pins as outputs
+  pinMode(enA, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+
+  // Ensure motors are off initially
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+}
+
+void loop() {
+  // Outer loop: Executes the inner loop block 3 times
+  for (x = 0; x < 3; x++) {
+    // Inner loop: Runs the motor and servo control 3 times
+    for (i = 0; i < 3; i++) {
+      controlServoAndMotor(-40, 0);  // Adjust servo and control motors
+    }
+  }
+}
+
+// Function to control the servo and motor operations
+void controlServoAndMotor(int servoPos, int resetServoPos) {
+  // Set the servo position and run the motors
+  servo1.write(servoPos);
+  delay(500);
+  activateMotors();
+  delay(1000);
+
+  // Reset servo position and run the motors again
+  servo1.write(resetServoPos);
+  delay(500);
+  activateMotors();
+  delay(1000);
+}
+
+// Function to activate the motors
+void activateMotors() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, HIGH);
+}
